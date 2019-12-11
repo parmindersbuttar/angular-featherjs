@@ -3,16 +3,17 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { FuseConfigService } from '@fuse/services/config.service';
 import { fuseAnimations } from '@fuse/animations';
+import client from 'feather.service';
+import { Router } from '@angular/router';
 
 @Component({
-    selector     : 'login',
-    templateUrl  : './login.component.html',
-    styleUrls    : ['./login.component.scss'],
+    selector: 'login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    animations   : fuseAnimations
+    animations: fuseAnimations
 })
-export class LoginComponent implements OnInit
-{
+export class LoginComponent implements OnInit {
     loginForm: FormGroup;
 
     /**
@@ -23,19 +24,19 @@ export class LoginComponent implements OnInit
      */
     constructor(
         private _fuseConfigService: FuseConfigService,
-        private _formBuilder: FormBuilder
-    )
-    {
+        private _formBuilder: FormBuilder,
+        private router: Router
+    ) {
         // Configure the layout
         this._fuseConfigService.config = {
             layout: {
-                navbar   : {
+                navbar: {
                     hidden: true
                 },
-                toolbar  : {
+                toolbar: {
                     hidden: true
                 },
-                footer   : {
+                footer: {
                     hidden: true
                 },
                 sidepanel: {
@@ -52,11 +53,28 @@ export class LoginComponent implements OnInit
     /**
      * On init
      */
-    ngOnInit(): void
-    {
+    ngOnInit(): void {
+
+        // client.service('users')
+        //     .find().then(r => {
+        //         console.log(r);
+        //     })
         this.loginForm = this._formBuilder.group({
-            email   : ['', [Validators.required, Validators.email]],
-            password: ['', Validators.required]
+            email: ['test@gmail.com', [Validators.required, Validators.email]],
+            password: ['password', Validators.required]
+        });
+    }
+
+    submit() {
+        client.authenticate({
+            strategy: 'local',
+            ...this.loginForm.value
+        }).then(res => {
+            localStorage.setItem('feather-jwt', res.access_token);
+            localStorage.setItem('user-details', JSON.stringify(res.user));
+            this.router.navigate(['/dashboard']);
+        }, err => {
+            console.log('Invalid credentials', err);
         });
     }
 }
